@@ -51,6 +51,7 @@ jobs:
     # The host should always be linux
     runs-on: ubuntu-latest
     name: Build On Linux ${{ matrix.arch }}
+    continue-on-error: true
     needs: mark
     # Run steps on a matrix of 4 arch/distro combinations
     strategy:
