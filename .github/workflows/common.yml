@@ -19,7 +19,7 @@ jobs:
       - name: Output file to Actions
         uses: actions/upload-artifact@v3
         with:
-          name: '0-CefBrowserX-${{ inputs.type }}-${{ github.run_number }}'
+          name: '0-CefDetectorX-${{ inputs.type }}-${{ github.run_number }}'
           path: 'README.md'
 
   amd64:
@@ -44,7 +44,7 @@ jobs:
       - name: Upload to Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: CefBrowserX-${{ runner.os }}-amd64
+          name: CefDetectorX-${{ runner.os }}-amd64
           path: build/CefDetectorX
 
   linux-multi-arch:
@@ -85,15 +85,15 @@ jobs:
             echo "The system environment is ready"
             echo "Please ignore warning from Docker: Architecture mismatch"
           run: |
-            echo "::group::CefBrowserX Pre-compilation preparation"
+            echo "::group::CefDetectorX Pre-compilation preparation"
             npm install --production
-            echo "::group::CefBrowserX Build"
+            echo "::group::CefDetectorX Build"
             node build-commit
 
       - name: Output file to Actions
         uses: actions/upload-artifact@v3
         with:
-          name: 'CefBrowserX-${{ runner.os }}-${{ matrix.arch }}'
+          name: 'CefDetectorX-${{ runner.os }}-${{ matrix.arch }}'
           path: 'build/CefDetectorX'
 
   upload-to-virscan:
@@ -110,10 +110,23 @@ jobs:
       - name: Display structure of downloaded files
         working-directory: build/artifacts
         run: ls -R
+      - name: Create Zips
+        run: |
+          echo "不许看（草）"
+          workdir=$(pwd)
+          list="$(ls build/artifacts|grep -v "0-CefDetectorX")"
+          count="$(ls build/artifacts|grep -c "")"
+          for ((i = 1; i < $count; i++)); do
+            pkgname="$(echo $list|sed -n "$i"p)"
+            echo "创建 "$pkgname
+            cd $workdir/$pkgname
+            zip -gr ../$pkgname.zip ./
+          done
+          echo "重新打包完毕"
       - name: VirusTotal GitHub Action
         uses: crazy-max/ghaction-virustotal@v3
         with:
           vt_api_key: ${{ secrets.VT_API_KEY }}
           github_token: ${{ github.token }}
           files: |
-            build/artifacts
+            build/artifacts/*.zip
